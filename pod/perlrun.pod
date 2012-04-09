@@ -1098,6 +1098,14 @@ X<:unix>
 
 Low-level layer that calls C<read>, C<write>, C<lseek>, etc.
 
+<<<<<<< HEAD
+=======
+=item :utf8
+X<:utf8>
+
+This layer reads utf-8 encodede unicode data and automatically decodes it.
+
+>>>>>>> 9a81523725 (Made :utf8 an actual layer)
 =item :win32
 X<:win32>
 
