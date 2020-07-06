@@ -77,7 +77,7 @@
 /* Use the reentrant APIs like localtime_r and getpwent_r */
 /* Win32 has naturally threadsafe libraries, no need to use any _r variants.
  * XXX KEEP makedef.pl copy of this code in sync */
-#if defined(USE_ITHREADS) && !defined(USE_REENTRANT_API) && !defined(NETWARE) && !defined(WIN32)
+#if defined(USE_ITHREADS) && !defined(USE_REENTRANT_API) && !defined(WIN32)
 #   define USE_REENTRANT_API
 #endif
 
@@ -727,7 +727,7 @@ Example usage:
  */
 
 /* define this once if either system, instead of cluttering up the src */
-#if defined(MSDOS) || defined(WIN32) || defined(NETWARE)
+#if defined(MSDOS) || defined(WIN32)
 #define DOSISH 1
 #endif
 
@@ -1435,9 +1435,6 @@ Use L</UV> to declare variables of the maximum usable size on this platform.
 #   endif
 # endif
 # ifdef I_NETDB
-#  ifdef NETWARE
-#   include<stdio.h>
-#  endif
 #  include <netdb.h>
 # endif
 # ifndef ENOTSOCK
@@ -3268,9 +3265,7 @@ freeing any remaining Perl interpreters.
  * documentation for details. */
 
 #if defined(USE_ITHREADS)
-#  ifdef NETWARE
-#    include <nw5thread.h>
-#  elif defined(WIN32)
+#  if   defined(WIN32)
 #    include <win32thread.h>
 #  elif defined(OS2)
 #    include "os2thread.h"
@@ -3310,10 +3305,6 @@ EXTERN_C int perl_tsa_mutex_unlock(perl_mutex* mutex)
 
 #if defined(WIN32)
 #  include "win32.h"
-#endif
-
-#ifdef NETWARE
-#  include "netware.h"
 #endif
 
 #define STATUS_UNIX	PL_statusvalue
