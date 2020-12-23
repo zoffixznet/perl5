@@ -764,15 +764,11 @@ diagnostic messages, see L<perldiag>.
 
 =item *
 
-L<Bareword filehandle "%s" not allowed under 'no feature "bareword_filehandles"'|perldiag/"Bareword filehandle "%s" not allowed under 'no feature "bareword_filehandles"'">
+L<Unknown locale category %d|perldiag/"Unknown locale category %d">
 
-This accompanies the new L<bareword_filehandles|feature/"The 'bareword_filehandles' feature."> feature.
-
-=item *
-
-L<Multidimensional hash lookup is disabled|perldiag/"Multidimensional hash lookup is disabled">
-
-This accompanies the new L<multidimensional|feature/"The 'multidimensional' feature"> feature.
+This is a shortened form of an already existing diagnostic, for use when
+there is no new locale being switched to.  The previous diagnostic was
+misleading in such circumstances.
 
 =back
 
