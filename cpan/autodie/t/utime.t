@@ -2,23 +2,26 @@
 use strict;
 use Test::More tests => 4;
 use constant NO_SUCH_FILE => "this_file_had_better_not_exist";
-use FindBin qw($Bin);
-use File::Spec;
-use constant TOUCH_ME     => File::Spec->catfile($Bin, 'touch_me');
+use File::Temp qw(tempfile);
 use autodie;
 
 eval { utime(undef, undef, NO_SUCH_FILE); };
 isa_ok($@, 'autodie::exception', 'exception thrown for utime');
 
-my($atime, $mtime) = (stat TOUCH_ME)[8, 9];
+my ($atime, $mtime);
+my ($tmpfh, $tmpfile);
+SKIP: {
+    # Some systems have a screwy tempfile. We don't run our tests there.
 
-eval { utime(undef, undef, TOUCH_ME); };
-ok(! $@, "We can utime a file just fine.") or diag $@;
+    local $@;
+    eval { ($tmpfh, $tmpfile) = tempfile(UNLINK => 1); };
+    my $reason = 'tempfile() not happy on this system.';
+    skip $reason, 3 if ($@ or !defined $tmpfh);
 
-eval { utime(undef, undef, NO_SUCH_FILE, TOUCH_ME); };
-isa_ok($@, 'autodie::exception', 'utime exception on single failure.');
-is($@->return, 1, "utime fails correctly on a 'true' failure.");
+    eval { utime(undef, undef, $tmpfile); };
+    ok(! $@, "We can utime a tempfile just fine.") or diag $@;
 
-# Reset timestamps so that Git doesn't think the file has changed when
-# running the test in the core perl distribution.
-utime($atime, $mtime, TOUCH_ME);
+    eval { utime(undef, undef, NO_SUCH_FILE, $tmpfile); };
+    isa_ok($@, 'autodie::exception', 'utime exception on single failure.');
+    is($@->return, 1, "utime fails correctly on a 'true' failure.");
+}
