@@ -4160,7 +4160,6 @@ Perl_mini_mktime(struct tm *ptm)
 char *
 Perl_my_strftime(pTHX_ const char *fmt, int sec, int min, int hour, int mday, int mon, int year, int wday, int yday, int isdst)
 {
-#ifdef HAS_STRFTIME
 
 /*
 =for apidoc_section $time
@@ -4272,10 +4271,6 @@ giving localized results.
     }
     return buf;
   }
-#else
-  Perl_croak(aTHX_ "panic: no strftime");
-  return NULL;
-#endif
 }
 
 

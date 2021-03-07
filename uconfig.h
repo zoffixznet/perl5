@@ -220,7 +220,7 @@
 
 /* HAS_MBLEN:
  *	This symbol, if defined, indicates that the mblen routine is available
- *	to find the number of bytes in a multibyte character.
+ *	to find the number of bytes in a multibye character.
  */
 /*#define HAS_MBLEN		/ **/
 
@@ -489,12 +489,6 @@
  *	to provide better numeric string conversion than atoi() and friends.
  */
 #define HAS_STRTOL	/**/
-
-/* HAS_STRXFRM:
- *	This symbol, if defined, indicates that the strxfrm() routine is
- *	available to transform strings.
- */
-/*#define HAS_STRXFRM	/ **/
 
 /* HAS_SYMLINK:
  *	This symbol, if defined, indicates that the symlink routine is available
@@ -2986,7 +2980,7 @@
 
 /* HAS_MEMMEM:
  *	This symbol, if defined, indicates that the memmem routine is
- *	available to return a pointer to the start of the first occurrence
+ *	available to return a pointer to the start of the first occurance
  *	of a substring in a memory area (or NULL if not found).
  *	In glibc, memmem is a GNU extension.  The function is visible in
  *	libc, but the prototype is only visible if _GNU_SOURCE is #defined.
@@ -3418,6 +3412,17 @@
  *	available to convert strings to unsigned long longs (quads).
  */
 /*#define HAS_STRTOUQ		/ **/
+
+/* HAS_STRXFRM:
+ *	This symbol, if defined, indicates that the strxfrm() routine is
+ *	available to transform strings.
+ */
+/* HAS_STRXFRM_L:
+ *	This symbol, if defined, indicates that the strxfrm_l() routine is
+ *	available to transform strings.
+ */
+/*#define HAS_STRXFRM	/ **/
+/*#define HAS_STRXFRM_L	/ **/
 
 /* HAS_SYSCALL_PROTO:
  *	This symbol, if defined, indicates that the system provides
@@ -4873,10 +4878,15 @@
  */
 /*#define HAS_MBRTOWC	/ **/
 
+/* HAS_NL_LANGINFO_L:
+ *	This symbol, when defined, indicates presence of the nl_langinfo_l()
+ *	function
+ */
 /* HAS_THREAD_SAFE_NL_LANGINFO_L:
  *	This symbol, when defined, indicates presence of the nl_langinfo_l()
  *	function, and that it is thread-safe.
  */
+/*#define HAS_NL_LANGINFO_L	/ **/
 /*#define HAS_THREAD_SAFE_NL_LANGINFO_L	/ **/
 
 /* OLD_PTHREAD_CREATE_JOINABLE:
@@ -5282,6 +5292,6 @@
 #endif
 
 /* Generated from:
- * 6edd641b187b02d0daa8cb53f5d22f2dcca115a0d3e744f51b0292d2db484ca5 config_h.SH
- * a9ec40c778a205e0256475b5ef025389f7ea06d75d09ac92414f6b99839577e8 uconfig.sh
+ * 6aa268878364ba168c22fdf8868de68edf980678874739c0281f1f957fe5e118 config_h.SH
+ * 7a6edb5d2cbd016d9c3d27859cd3dba5d22f24263887ada1e3f3d28539efa0c1 uconfig.sh
  * ex: set ro: */

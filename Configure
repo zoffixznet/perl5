@@ -701,6 +701,7 @@ d_nextafter=''
 d_nexttoward=''
 d_nice=''
 d_nl_langinfo=''
+d_nl_langinfo_l=''
 d_thread_safe_nl_langinfo_l=''
 d_off64_t=''
 d_open3=''
@@ -889,6 +890,7 @@ d_strtoul=''
 d_strtoull=''
 d_strtouq=''
 d_strxfrm=''
+d_strxfrm_l=''
 d_symlink=''
 d_syscall=''
 d_syscallproto=''
@@ -1834,8 +1836,8 @@ Usage: $me [-dehrsEKOSV] [-f config.sh] [-D symbol] [-D symbol=value]
   -r : reuse C symbols value if possible (skips costly nm extraction).
   -s : silent mode, only echoes questions and essential information.
   -D : define symbol to have some value:
-         -D symbol                symbol gets the value 'define'
-         -D symbol='some value'   symbol is set to 'some value'
+         -D symbol         symbol gets the value 'define'
+         -D symbol=value   symbol gets the value 'value'
        common used examples (see INSTALL for more info):
          -Duse64bitint            use 64bit integers
          -Duse64bitall            use 64bit integers and pointers
@@ -2779,7 +2781,7 @@ EOM
                     if $test -f UU/myread; then
                         . ./UU/myread
                     else
-                        echo "Cannot find myread, sorry.  Aborting." >&2
+                        echo "Cannot find myread, sorry.  Aborting." >&4
                         exit 1
                     fi
                 fi
@@ -4863,35 +4865,27 @@ esac
 # Note that ccname for clang is also gcc.
 case "$ccname" in
     gcc)
-	realpath=`which realpath 2>/dev/null | sed 's/no realpath in.*//'`
 	$echo 'extern int foo;' > try.c
 	set X `$cppstdin -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
 	shift
-	inclinpth=""
 	if $test $# -gt 0; then
+	    incpth="$incpth $*"
+	    incpth="`$echo $incpth|$sed 's/^ //'`"
 	    for i in $*; do
-		case $realpath in
-		    */realpath) i=`$realpath $i` ;;
-		esac
-		incpth="$incpth $i"
-		j="`$echo $i | $sed 's,/include[^/]*,/lib,'`"
+		j="`$echo $i|$sed 's,/include$,/lib,'`"
 		if $test -d $j; then
-		    inclibpth="$inclibpth $j"
+		    libpth="$libpth $j"
 		fi
 	    done
-	    incpth="`$echo $incpth | $sed 's/^ //'`"
-	    for xxx in $inclibpth $loclibpth $plibpth $glibpth; do
+	    libpth="`$echo $libpth|$sed 's/^ //'`"
+	    for xxx in $libpth $loclibpth $plibpth $glibpth; do
 		if $test -d $xxx; then
-		    case $realpath in
-			*/realpath) xxx=`$realpath $xxx` ;;
-		    esac
 		    case " $libpth " in
 		    *" $xxx "*) ;;
 		    *) libpth="$libpth $xxx";;
 		    esac
 		fi
 	    done
-	    libpth="`$echo $libpth | $sed 's/^ //'`"
 	fi
 	$rm -f try.c
 	case "$usrinc" in
@@ -5333,18 +5327,18 @@ esac
 : think is an option
 checkccflag='check=$1; flag=$2; callback=$3;
 echo " ";
-echo "Checking if your compiler accepts $flag" 2>&1;
+echo "Checking if your compiler accepts $flag" >&4;
 [ "X$sysroot" != "X" ] && echo "For sysroot = $sysroot";
 echo "int main(void) { return 0; }" > gcctest.c;
 if $cc $_sysroot -O2 $flag -o gcctest gcctest.c 2>gcctest.out && $run ./gcctest; then
-    echo "Yes, it does." 2>&1;
+    echo "Yes, it does." >&4;
     if $test -s gcctest.out ; then
         echo "But your platform does not like it:";
         cat gcctest.out;
     else
 	case "$ccflags" in
 	*$check*)
-	    echo "Leaving current flags $ccflags alone." 2>&1
+	    echo "Leaving current flags $ccflags alone." >&4
 	    ;;
 	*) dflt="$dflt $flag";
 	    eval $callback
@@ -5352,7 +5346,7 @@ if $cc $_sysroot -O2 $flag -o gcctest gcctest.c 2>gcctest.out && $run ./gcctest;
 	esac
     fi
 else
-    echo "Nope, it does not, but that is ok." 2>&1;
+    echo "Nope, it does not, but that is ok." >&4;
 fi
 '
 
@@ -5402,7 +5396,7 @@ default|recommended)
 	    echo "Do not add -fstack-protector nor -fstack-protector-strong" 2>&1
 	    ;;
 	*) case "$gccversion" in
-	   ?*)	set stack-protector-strong -fstack-protector-strong
+	   ?*)  set stack-protector-strong -fstack-protector-strong
 		eval $checkccflag
 		case "$dflt" in
 		*-fstack-protector-strong*) ;; # It got added.
@@ -6902,9 +6896,9 @@ int main() {
      * The Motorola 68881 had another "extended precision" format:
      * sign:1 exp:15 zero:16 integer:1 mantissa:63
      * for total of 96 bits of bytes.  The zero bits were unused.
-     * See "M68000 FAMILY PROGRAMMER'S REFERENCE MANUAL" for more details.
-     * If it ever becomes relevant, this format should be allocated a
-     * new doublekind code since it is quite different from the Intel x87.
+     * See "M68000 FAMILY PROGRAMMER’S REFERENCE MANUAL" for more details.
+     * If it ever becomes relevant, this format should be allocated
+     * a new doublekind code since it's quite different from the Intel x87.
      */
     printf("4\n");
     exit(0);
@@ -10382,15 +10376,6 @@ void checkit(const char *expect, char *got)
 	}
 }
 
-void lencheck(int expect, int got)
-{
-    if (expect != got) {
-		printf("%s length mismatch:  Expected %d, got %d\n",
-			myname, expect, got);
-		exit(1);
-	}
-}
-
 int main()
 {
 	char buf[64];
@@ -10463,11 +10448,13 @@ int main()
 	else
 	    checkit("1e+34", buf);
 
-	/* Test for an Ubuntu/Debian bug in gcvt and qgcvt. See:        *
-	 * https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1899553 */
-
+        /* Test for an Ubuntu/Debian bug in gcvt and qgcvt. See:        *
+         * https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/1899553 */
 	Gconvert((DOUBLETYPE)0.4, 53, 0, buf);
-	lencheck(55, (int)strlen(buf));
+	if(sizeof(DOUBLETYPE) == 8)
+	    checkit("0.40000000000000002220446049250313080847263336181640625", buf);
+	else
+	    checkit("0.40000000000000000000542101086242752217003726400434971", buf);
 
 	/* For Perl, if you add additional tests here, also add them to
 	 * t/base/num.t for benefit of platforms not using Configure or
@@ -13745,7 +13732,7 @@ case "$d_stdstdio:$d_stdio_ptr_lval" in
 "$define:$define")
 	case "$d_stdio_cnt_lval$d_stdio_ptr_lval_sets_cnt" in
 	*$define*)
-		echo "You seem to have 'fast stdio' to directly manipulate the stdio buffers." >& 4
+		echo "You seem to have 'fast stdio' to directly manipulate the stdio buffers." >&4
 		val="$define"
 		;;
 	esac
@@ -14286,19 +14273,19 @@ EOCP
 val=
 set try
 if eval $compile_ok; then
-    $run ./try
-    rc=$?
-    case "$rc" in
-	0) echo "getenv() didn't destroy another thread's buffer" >&4
-	   val=$define
-	   ;;
-	1) echo "getenv() does destroy another thread's buffer" >&4
-	   val=$undef
-	   ;;
-	*) echo "Couldn't determine if getenv() destroys another thread's return value (code=$rc); assuming it does" >&4
-	   val=$undef
-	   ;;
-    esac
+        $run ./try
+        rc=$?
+        case "$rc" in
+            0) echo "getenv() didn't destroy another thread's buffer" >&4
+	       val=$define
+               ;;
+            1) echo "getenv() does destroy another thread's buffer" >&4
+	       val=$undef
+               ;;
+            *) echo "Couldn't determine if getenv() destroys another thread's return value (code=$rc); assuming it does" >&4
+	       val=$undef
+               ;;
+        esac
 else
     echo "(I can't seem to compile the test program.)" >&4
     echo "Assuming that your C library's getenv destroys another thread's return value." >&4
@@ -16541,6 +16528,99 @@ eval $inhdr
 set nl_langinfo d_nl_langinfo
 eval $inlibc
 
+: see if locale.h is available
+set locale.h i_locale
+eval $inhdr
+
+: check for nl_langinfo_l item
+$cat <<EOM
+
+Checking to see if you have nl_langinfo_l(), and that it is thread-safe
+EOM
+$cat >try.c <<EOCP
+#$i_stdlib I_STDLIB
+#ifdef I_STDLIB
+#  include <stdlib.h>
+#endif
+#include <string.h>
+#$i_langinfo I_LANGINFO
+#ifdef I_LANGINFO
+#  include <langinfo.h>
+#endif
+#$i_pthread I_PTHREAD
+#ifdef I_PTHREAD
+#  include <pthread.h>
+#endif
+#$i_locale I_LOCALE
+#ifdef I_LOCALE
+#  include <locale.h>
+#endif
+
+void *
+thread_start(void * arg)
+{
+    nl_langinfo(RADIXCHAR);
+}
+
+int main() {
+    char * main_buffer;
+    char save_main_buffer[1000];
+    pthread_t subthread;
+    pthread_attr_t attr;
+
+    main_buffer = nl_langinfo_l(CODESET, newlocale(LC_ALL_MASK, "C", 0));
+
+    /* If too large for our generous allowance, just assume we don't have
+     * it. */
+    if (strlen(main_buffer) >= sizeof(save_main_buffer)) {
+        exit(1);
+    }
+
+    strcpy(save_main_buffer, main_buffer);
+
+    if (pthread_attr_init(&attr) != 0) {
+        exit(1);
+    }
+
+    if (pthread_create(&subthread, &attr, thread_start, NULL) != 0) {
+        exit(1);
+    }
+
+    if (pthread_join(subthread, NULL) != 0) {
+        exit(1);
+    }
+
+    exit(! (strcmp(main_buffer, save_main_buffer) == 0));
+}
+EOCP
+case "$usethreads" in
+    define)
+        set try
+        if eval $compile; then
+            echo "Your system has nl_langinfo_l()..." >&4
+            d_nl_langinfo_l="$define"
+            echo "$d_nl_langinfo_l" >&4
+            if $run ./try; then
+                echo "and it is thread-safe (just as I'd hoped)." >&4
+                d_thread_safe_nl_langinfo_l="$define"
+                echo "$d_thread_safe_nl_langinfo_l" >&4
+            else
+                echo "but it isn't thread-safe." >&4
+            fi
+        else
+            echo "your system does not have nl_langinfo_l()" >&4
+        fi
+        ;;
+    *) echo "Since threads aren't selected, we won't bother looking for nl_langinfo_l()" >&4
+esac
+if test X"$d_nl_langinfo_l" = X; then
+	d_nl_langinfo_l="$undef"
+fi
+if test X"$d_thread_safe_nl_langinfo_l" = X; then
+	d_thread_safe_nl_langinfo_l="$undef"
+fi
+$rm_try
+
 : see if this is a quadmath.h system
 set quadmath.h i_quadmath
 eval $inhdr
@@ -16788,12 +16868,12 @@ fi
 case "$nv_preserves_uv_bits" in
 \-[1-9]*)
 	nv_preserves_uv_bits=`expr 0 - $nv_preserves_uv_bits`
-	$echo "Your NVs can preserve all $nv_preserves_uv_bits bits of your UVs."  2>&1
+	$echo "Your NVs can preserve all $nv_preserves_uv_bits bits of your UVs."  >&4
 	d_nv_preserves_uv="$define"
 	;;
-[1-9]*)	$echo "Your NVs can preserve only $nv_preserves_uv_bits bits of your UVs."  2>&1
+[1-9]*)	$echo "Your NVs can preserve only $nv_preserves_uv_bits bits of your UVs."  >&4
 	d_nv_preserves_uv="$undef" ;;
-*)	$echo "Can't figure out how many bits your NVs preserve." 2>&1
+*)	$echo "Can't figure out how many bits your NVs preserve." >&4
 	nv_preserves_uv_bits="0" ;;
 esac
 $rm_try
@@ -17905,10 +17985,6 @@ eval $inlibc
 : see if setlinebuf exists
 set setlinebuf d_setlinebuf
 eval $inlibc
-
-: see if locale.h is available
-set locale.h i_locale
-eval $inhdr
 
 : see if this system has wctype.h
 set wctype.h i_wctype
@@ -19470,6 +19546,10 @@ esac
 set strxfrm d_strxfrm
 eval $inlibc
 
+: see if strxfrm_l exists
+set strxfrm_l d_strxfrm_l
+eval $inlibc
+
 : see if symlink exists
 set symlink d_symlink
 eval $inlibc
@@ -19519,90 +19599,6 @@ eval $hasproto
 : see if tgamma exists
 set tgamma d_tgamma
 eval $inlibc
-
-: check for thread_safe_nl_langinfo_l item
-$cat <<EOM
-
-Checking to see if you have nl_langinfo_l() and that it is thread-safe
-EOM
-$cat >try.c <<EOCP
-#$i_stdlib I_STDLIB
-#ifdef I_STDLIB
-#  include <stdlib.h>
-#endif
-#include <string.h>
-#$i_langinfo I_LANGINFO
-#ifdef I_LANGINFO
-#  include <langinfo.h>
-#endif
-#$i_pthread I_PTHREAD
-#ifdef I_PTHREAD
-#  include <pthread.h>
-#endif
-#$i_locale I_LOCALE
-#ifdef I_LOCALE
-#  include <locale.h>
-#endif
-
-void *
-thread_start(void * arg)
-{
-    nl_langinfo(RADIXCHAR);
-}
-
-int main() {
-    char * main_buffer;
-    char save_main_buffer[1000];
-    pthread_t subthread;
-    pthread_attr_t attr;
-
-    main_buffer = nl_langinfo_l(CODESET, newlocale(LC_ALL_MASK, "C", 0));
-
-    /* If too large for our generous allowance, just assume we don't have
-     * it. */
-    if (strlen(main_buffer) >= sizeof(save_main_buffer)) {
-        exit(1);
-    }
-
-    strcpy(save_main_buffer, main_buffer);
-
-    if (pthread_attr_init(&attr) != 0) {
-        exit(1);
-    }
-
-    if (pthread_create(&subthread, &attr, thread_start, NULL) != 0) {
-        exit(1);
-    }
-
-    if (pthread_join(subthread, NULL) != 0) {
-        exit(1);
-    }
-
-    exit(! (strcmp(main_buffer, save_main_buffer) == 0));
-}
-EOCP
-case "$usethreads" in
-    define)
-        set try
-        if eval $compile; then
-            echo "Your system has nl_langinfo_l()..." >&4
-            if $run ./try; then
-                echo "and it is thread-safe (just as I'd hoped)." >&4
-                d_thread_safe_nl_langinfo_l="$define"
-                echo "$d_thread_safe_nl_langinfo_l" >&4
-            else
-                echo "but it isn't thread-safe, so we won't use it." >&4
-            fi
-        else
-            echo "your system does not have nl_langinfo_l()" >&4
-        fi
-        ;;
-    *) echo "Since threads aren't selected, we won't bother looking for nl_langinfo_l()" >&4
-esac
-if test X"$d_thread_safe_nl_langinfo_l" = X; then
-	d_thread_safe_nl_langinfo_l="$undef"
-fi
-$rm_try
 
 : see if time exists
 echo " "
@@ -24527,6 +24523,7 @@ d_nextafter='$d_nextafter'
 d_nexttoward='$d_nexttoward'
 d_nice='$d_nice'
 d_nl_langinfo='$d_nl_langinfo'
+d_nl_langinfo_l='$d_nl_langinfo_l'
 d_nv_preserves_uv='$d_nv_preserves_uv'
 d_nv_zero_is_allbits_zero='$d_nv_zero_is_allbits_zero'
 d_off64_t='$d_off64_t'
@@ -24694,6 +24691,7 @@ d_strtoul='$d_strtoul'
 d_strtoull='$d_strtoull'
 d_strtouq='$d_strtouq'
 d_strxfrm='$d_strxfrm'
+d_strxfrm_l='$d_strxfrm_l'
 d_suidsafe='$d_suidsafe'
 d_symlink='$d_symlink'
 d_syscall='$d_syscall'

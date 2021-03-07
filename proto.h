@@ -5195,8 +5195,6 @@ STATIC const char *	S_save_to_buffer(const char * string, const char **buf, Size
 			__attribute__warn_unused_result__;
 #define PERL_ARGS_ASSERT_SAVE_TO_BUFFER
 
-STATIC void	S_set_numeric_radix(pTHX_ const bool use_locale);
-#define PERL_ARGS_ASSERT_SET_NUMERIC_RADIX
 PERL_STATIC_NO_RET void	S_setlocale_failure_panic_i(pTHX_ const unsigned int cat_index, const char * current, const char * failed, const line_t caller_0_line, const line_t caller_1_line)
 			__attribute__noreturn__;
 #define PERL_ARGS_ASSERT_SETLOCALE_FAILURE_PANIC_I	\
