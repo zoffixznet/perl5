@@ -4218,7 +4218,9 @@ giving localized results.
 
   GCC_DIAG_IGNORE_STMT(-Wformat-nonliteral); /* fmt checked by caller */
 
+  STRFTIME_LOCK;
   len = strftime(buf, buflen, fmt, &mytm);
+  STRFTIME_UNLOCK;
 
   GCC_DIAG_RESTORE_STMT;
 
@@ -4247,7 +4249,9 @@ giving localized results.
     while (buf) {
 
       GCC_DIAG_IGNORE_STMT(-Wformat-nonliteral); /* fmt checked by caller */
+      STRFTIME_LOCK;
       buflen = strftime(buf, bufsize, fmt, &mytm);
+      STRFTIME_UNLOCK;
       GCC_DIAG_RESTORE_STMT;
 
       if (inRANGE(buflen, 1, bufsize - 1))
