@@ -5184,6 +5184,8 @@ PERL_CALLCONV SV*	Perl_hfree_next_entry(pTHX_ HV *hv, STRLEN *indexp);
 #endif
 #if defined(PERL_IN_LOCALE_C)
 #  if defined(USE_LOCALE)
+STATIC const char *	S_get_LC_ALL_display(pTHX);
+#define PERL_ARGS_ASSERT_GET_LC_ALL_DISPLAY
 STATIC unsigned int	S_get_category_index(const int category, const char * locale);
 #define PERL_ARGS_ASSERT_GET_CATEGORY_INDEX
 STATIC unsigned	S_get_locale_string_utf8ness_i(pTHX_ const char * locale, const unsigned cat_index, const char * string, const int known_utf8);
