@@ -3896,6 +3896,7 @@ PP(pp_iter)
     itersvp = CxITERVAR(cx);
     assert(itersvp);
 
+    {
     switch (CxTYPE(cx)) {
 
     case CXt_LOOP_LAZYSV: /* string increment */
@@ -4046,6 +4047,7 @@ PP(pp_iter)
 
     default:
         DIE(aTHX_ "panic: pp_iter, type=%u", CxTYPE(cx));
+    }
     }
 
     /* Try to bypass pushing &PL_sv_yes and calling pp_and(); instead
