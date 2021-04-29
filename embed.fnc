@@ -3265,18 +3265,19 @@ S	|const char*|my_langinfo_i|const int item			\
 S	|HV *	|get_nl_item_from_localeconv				\
 				|NN const struct lconv *lcbuf		\
                                 |const int item				\
-                                |const int unused
+                                |const int locale_is_utf8
 #      endif
 #  endif
 ST	|const char *|save_to_buffer|NULLOK const char * string	\
 				    |NULLOK const char **buf	\
 				    |NULLOK Size_t *buf_size
-:#    ifndef HAS_POSIX_2008_LOCALE
+#    ifndef HAS_POSIX_2008_LOCALE
 S	|const char*|stdize_locale|const int category			\
 				|NULLOK const char* input_locale	\
 				|NULLOK const char **buf		\
-				|NULLOK Size_t *buf_size
-:#    endif
+				|NULLOK Size_t *buf_size		\
+				|line_t caller_line
+#    endif
 #    ifdef USE_QUERYLOCALE
 S	|const char *|calculate_LC_ALL|const locale_t cur_obj
 #    else
@@ -3291,10 +3292,12 @@ Sr	|void	|setlocale_failure_panic_i|const unsigned int cat_index	\
 				|const line_t caller_1_line
 S	|void	|new_numeric	|NN const char* newnum
 S	|void	|new_LC_ALL	|NULLOK const char* unused
-S	|const char *|toggle_locale_i|const unsigned switch_cat_index	\
-				|NN const char * new_locale
-S	|void	|restore_toggled_locale_i|const unsigned cat_index	\
-                                |NULLOK const char * original_locale
+So	|const char *|toggle_locale_i|const unsigned switch_cat_index	\
+				|NN const char * new_locale		\
+				|const line_t caller_line
+So	|void	|restore_toggled_locale_i|const unsigned cat_index	\
+                                |NULLOK const char * original_locale	\
+				|const line_t caller_line
 S	|bool	|is_locale_utf8	|NN const char * locale
 ST	|bool	|is_codeset_name_UTF8|NN const char * name
 #    ifdef USE_POSIX_2008_LOCALE
@@ -3329,8 +3332,9 @@ S	|void	|less_dicey_void_setlocale_i				\
 #    endif
 #    ifdef WIN32
 S	|char*	|win32_setlocale|int category|NULLOK const char* locale
-pTC	|wchar_t *|Win_utf8_string_to_wstring|NULLOK const char * utf8_string
-pTC	|char *	|Win_wstring_to_utf8_string|NULLOK const wchar_t * wstring
+ST	|wchar_t *|Win_byte_string_to_wstring|UINT code_page		\
+				|NULLOK const char * byte_string
+ST	|char *	|Win_wstring_to_utf8_string|NULLOK const wchar_t * wstring
 #    endif
 #    ifdef DEBUGGING
 S	|void	|print_collxfrm_input_and_return		\

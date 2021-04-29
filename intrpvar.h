@@ -724,9 +724,9 @@ PERLVAR(I, padix_floor,	PADOFFSET)	/* how low may inner block reset padix */
 PERLVARA(I, curlocales, 12, const char *)
 
 #endif
-#ifndef USE_THREAD_SAFE_LOCALE_EMULATION
+
 PERLVARI(I, perl_controls_locale, bool, 1)
-#endif
+
 #ifdef USE_LOCALE_COLLATE
 
 /* The emory needed to store the collxfrm transformation of a string with
@@ -755,6 +755,11 @@ PERLVARI(I, setlocale_buf, const char *, NULL)
 PERLVARI(I, setlocale_bufsize, Size_t, 0)
 PERLVARI(I, stdize_locale_buf, const char *, NULL)
 PERLVARI(I, stdize_locale_bufsize, Size_t, 0)
+
+#ifdef WIN32
+PERLVARI(I, win32setlocale_buf, const char *, NULL)
+PERLVARI(I, win32setlocale_bufsize, Size_t, 0)
+#endif
 
 #ifdef PERL_SAWAMPERSAND
 PERLVAR(I, sawampersand, U8)		/* must save all match strings */

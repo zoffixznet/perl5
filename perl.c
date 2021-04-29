@@ -1162,6 +1162,13 @@ perl_destruct(pTHXx)
         PL_setlocale_buf = NULL;
     }
 
+#ifdef WIN32
+    if (PL_win32setlocale_buf) {
+        Safefree(PL_win32setlocale_buf);
+        PL_win32setlocale_buf = NULL;
+    }
+#endif
+
     if (PL_langinfo_buf) {
         Safefree(PL_langinfo_buf);
         PL_langinfo_buf = NULL;

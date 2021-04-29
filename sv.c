@@ -15695,6 +15695,11 @@ perl_clone_using(PerlInterpreter *proto_perl, UV flags,
     PL_setlocale_buf = NULL;
     PL_setlocale_bufsize = 0;
 
+#ifdef WIN32
+    PL_win32setlocale_buf = NULL;
+    PL_win32setlocale_bufsize = 0;
+#endif
+
     PL_stdize_locale_buf = NULL;
     PL_stdize_locale_bufsize = 0;
 

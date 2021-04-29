@@ -378,6 +378,8 @@
 #define PL_watchaddr		(vTHX->Iwatchaddr)
 #define PL_watchok		(vTHX->Iwatchok)
 #define PL_wcrtomb_ps		(vTHX->Iwcrtomb_ps)
+#define PL_win32setlocale_buf	(vTHX->Iwin32setlocale_buf)
+#define PL_win32setlocale_bufsize	(vTHX->Iwin32setlocale_bufsize)
 #define PL_xsubfilename		(vTHX->Ixsubfilename)
 
 #endif	/* MULTIPLICITY */
