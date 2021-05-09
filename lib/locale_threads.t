@@ -26,14 +26,14 @@ $Data::Dumper::Deepcopy = 1;
 
 plan(2);
 my $debug = 0;
-$debug = 1 if $^O =~ /MSWin32/i;
+$debug = 0; #$^O =~ /MSWin32/i;
 my $d = $^D;
 $d |= 0x04000000|0x00100000 if $^O =~ /MSWin32/i; #if $debug;
 
 my $thread_count = $^O =~ /linux/i ? 50 : 3;
 $thread_count = 3;
 my $iterations = 1000;
-$iterations = 50 if $^O =~ /MSWin32/i;
+#$iterations = 50 if $^O =~ /MSWin32/i;
 my $max_result_length = 10000;
 
 # Estimate as to how long to allow a thread to be ready to roll after
@@ -541,7 +541,8 @@ SKIP: {
                                             + ($thread_count * $per_thread_startup))
                                         * 1_000_000;
     my $switches = "";
-    $switches = "switches => [ -DLv ]" if $debug;
+    #$switches = "switches => [ -DU ]" if $^O =~ /MSWin32/i;; # if $debug;
+
 
     # See if multiple threads can simultaneously change the locale, and give
     # the expected radix results.  On systems without a comma radix locale,
@@ -675,6 +676,7 @@ SKIP: {
                 } # Loop to do the remaining categories for this iteration
 
                 return 0 if \$errors;   # But no more iterations if failure
+                #study if $iterations % 10 == 0;
             }
 
             return 1;   # Success

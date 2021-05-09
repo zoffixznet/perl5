@@ -186,7 +186,7 @@ static const char C_thousands_sep[] = "";
                               && (( *(name) == 'C' && (*(name + 1)) == '\0') \
                                    || strEQ((name), "POSIX")))
 
-#if defined(HAS_THREAD_SAFE_NL_LANGINFO_L) || defined(HAS_NL_LANGINFO)
+#if defined(HAS_NL_LANGINFO_L) || defined(HAS_NL_LANGINFO)
 #  define HAS_SOME_LANGINFO
 #endif
 #if defined(HAS_LOCALECONV) || defined(HAS_LOCALECONV_L)
@@ -1277,22 +1277,6 @@ S_emulate_setlocale_i(pTHX_
         if (UNLIKELY(! uselocale(new_obj))) { /* Shouldn't happen */
             goto bad_uselocale;
         }
-
-#    ifndef USE_PL_CURLOCALES
-        if (strNE(calculate_LC_ALL(PL_C_locale_obj), "C")) {
-#      if 1   /* XXX */
-            locale_panic_(Perl_form(aTHX_
-                                "(%d): C obj inappropriately changed to '%s'\n"
-                                line, calculate_LC_ALL(PL_C_locale_obj)));
-#      else
-            DEBUG_L(PerlIO_printf(Perl_debug_log, "(%d): C==%s\n", line, calculate_LC_ALL(PL_C_locale_obj)));
-            freelocale(PL_C_locale_obj);
-            PL_C_locale_obj = newlocale(LC_ALL_MASK, "C", (locale_t) 0);
-#      endif
-        }
-
-#    endif
-
     }
 
     /* Here, we are using 'new_obj' which matches the input 'new_locale'. */
@@ -2420,13 +2404,13 @@ S_new_collate(pTHX_ const char *newcoll)
         return;
     }
 
-        Safefree(PL_collation_name);
-        PL_collation_name = savepv(newcoll);
+    Safefree(PL_collation_name);
+    PL_collation_name = savepv(newcoll);
     ++PL_collation_ix;
 
     /* Set the new one up if trivial */
-        PL_collation_standard = isNAME_C_OR_POSIX(newcoll);
-        if (PL_collation_standard) {
+    PL_collation_standard = isNAME_C_OR_POSIX(newcoll);
+    if (PL_collation_standard) {
         DEBUG_Lv(PerlIO_printf(Perl_debug_log, "Setting PL_collation name='%s'\n", PL_collation_name));
         PL_collxfrm_base = 0;
         PL_collxfrm_mult = 2;
@@ -2434,7 +2418,7 @@ S_new_collate(pTHX_ const char *newcoll)
         PL_strxfrm_NUL_replacement = '\0';
         PL_strxfrm_max_cp = 0;
         return;
-        }
+    }
 
     /* Flag that the remainder of the set up is being deferred until first need */
     PL_collxfrm_mult = 0;
@@ -3508,7 +3492,7 @@ S_my_localeconv(pTHX_ const int item)
 #        ifdef USE_LOCALE_NUMERIC
 
         /* Add in NUMERIC */
-        with = newlocale(LC_CTYPE_MASK, PL_numeric_name, with);
+        with = newlocale(LC_NUMERIC_MASK, PL_numeric_name, with);
 
 #        endif
 
@@ -4313,9 +4297,18 @@ S_my_langinfo_i(pTHX_
 /*--------------------------------------------------------------------------*/
 /* Above is the common beginning to all the implementations of my_langinfo().
  * Below are the various completions */
-#  if defined(HAS_THREAD_SAFE_NL_LANGINFO_L) && defined(USE_POSIX_2008_LOCALE)
+#  if defined(HAS_NL_LANGINFO_L) && defined(USE_POSIX_2008_LOCALE)
 
     /* Simplest is if we can use nl_langinfo_l() */
+
+#    if defined(HAS_THREAD_SAFE_NL_LANGINFO_L)
+#      define NL_LANGINFO_LOCK    NOOP
+#      define NL_LANGINFO_UNLOCK  NOOP
+#    else
+#      define NL_LANGINFO_LOCK    gwLOCALE_LOCK;
+#      define NL_LANGINFO_UNLOCK  gwLOCALE_UNLOCK;
+#    endif
+
     {
         locale_t cur;
         bool need_free = FALSE;
@@ -4328,7 +4321,9 @@ S_my_langinfo_i(pTHX_
             need_free = TRUE;
         }
 
+        NL_LANGINFO_LOCK;
         retval = save_to_buffer(nl_langinfo_l(item, cur), retbufp, retbuf_sizep);
+        NL_LANGINFO_UNLOCK;
 
         if (utf8ness) {
             *utf8ness = get_locale_string_utf8ness_i(locale, cat_index,
