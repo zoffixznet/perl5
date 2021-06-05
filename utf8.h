@@ -623,11 +623,11 @@ and the compiler should optimize out anything extraneous given the
 implementation of the latter.  The |0 makes sure this isn't mistakenly called
 with a ptr argument.
 */
-#define UTF8_IS_INVARIANT(c)	UVCHR_IS_INVARIANT((c) | 0)
+#define UTF8_IS_INVARIANT(c)    OFFUNI_IS_INVARIANT(NATIVE_TO_LATIN1(c))
 
 /* Like the above, but its name implies a non-UTF8 input, which as the comments
  * above show, doesn't matter as to its implementation */
-#define NATIVE_BYTE_IS_INVARIANT(c)	UVCHR_IS_INVARIANT(c)
+#define NATIVE_BYTE_IS_INVARIANT(c)	UTF8_IS_INVARIANT(c)
 
 /* Misleadingly named: is the UTF8-encoded byte 'c' part of a variant sequence
  * in UTF-8?  This is the inverse of UTF8_IS_INVARIANT. */
