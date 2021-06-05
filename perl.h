@@ -1209,6 +1209,7 @@ Use L</UV> to declare variables of the maximum usable size on this platform.
     typedef I64TYPE PERL_INTMAX_T;
     typedef U64TYPE PERL_UINTMAX_T;
 #  endif
+#  define PERL_UINTMAX_SIZE U64SIZE
 #  ifndef INTMAX_C
 #    define INTMAX_C(c) INT64_C(c)
 #  endif
@@ -1223,6 +1224,7 @@ Use L</UV> to declare variables of the maximum usable size on this platform.
     typedef I32TYPE PERL_INTMAX_T;
     typedef U32TYPE PERL_UINTMAX_T;
 #  endif
+#  define PERL_UINTMAX_SIZE U32SIZE;
 #  ifndef INTMAX_C
 #    define INTMAX_C(c) INT32_C(c)
 #  endif
