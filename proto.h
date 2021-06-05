@@ -1861,6 +1861,12 @@ PERL_CALLCONV I32	Perl_looks_like_number(pTHX_ SV *const sv)
 #define PERL_ARGS_ASSERT_LOOKS_LIKE_NUMBER	\
 	assert(sv)
 
+#ifndef PERL_NO_INLINE_FUNCTIONS
+PERL_STATIC_INLINE unsigned	Perl_lsbit_pos(PERL_UINTMAX_T word)
+			__attribute__warn_unused_result__;
+#define PERL_ARGS_ASSERT_LSBIT_POS
+#endif
+
 PERL_CALLCONV int	Perl_magic_clear_all_env(pTHX_ SV* sv, MAGIC* mg);
 #define PERL_ARGS_ASSERT_MAGIC_CLEAR_ALL_ENV	\
 	assert(sv); assert(mg)

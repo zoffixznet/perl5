@@ -302,6 +302,7 @@
 #define load_module		Perl_load_module
 #endif
 #define looks_like_number(a)	Perl_looks_like_number(aTHX_ a)
+#define lsbit_pos		Perl_lsbit_pos
 #define magic_dump(a)		Perl_magic_dump(aTHX_ a)
 #define markstack_grow()	Perl_markstack_grow(aTHX)
 #ifndef MULTIPLICITY
