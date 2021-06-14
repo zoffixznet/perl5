@@ -83,9 +83,9 @@ the string is invariant.
    are in the following header file:
  */
 
-#include "utfebcdic.h"
+#  include "utfebcdic.h"
 
-#else	/* ! EBCDIC */
+#  else	/* ! EBCDIC */
 START_EXTERN_C
 
 /* See explanation below at 'UTF8_MAXBYTES' */
@@ -95,7 +95,7 @@ START_EXTERN_C
 
 
 
-#ifdef DOINIT
+#  ifdef DOINIT
 EXTCONST unsigned char PL_utf8skip[] = {
 /* 0x00 */ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /* ascii */
 /* 0x10 */ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /* ascii */
@@ -119,9 +119,9 @@ EXTCONST unsigned char PL_utf8skip[] = {
            /* More extended, Up to 72 bits (64-bit + reserved) */
 /* 0xFF */                               ASCII_PLATFORM_UTF8_MAXBYTES
 };
-#else
+#  else
 EXTCONST unsigned char PL_utf8skip[];
-#endif
+#  endif
 
 END_EXTERN_C
 
@@ -170,8 +170,8 @@ adding no time nor space requirements to the implementation.
 =cut
 */
 
-#define NATIVE_TO_LATIN1(ch)     (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
-#define LATIN1_TO_NATIVE(ch)     (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
+#  define NATIVE_TO_LATIN1(ch)     (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
+#  define LATIN1_TO_NATIVE(ch)     (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
 
 /* I8 is an intermediate version of UTF-8 used only in UTF-EBCDIC.  We thus
  * consider it to be identical to UTF-8 on ASCII platforms.  Strictly speaking
@@ -179,11 +179,11 @@ adding no time nor space requirements to the implementation.
  * because they are 8-bit encodings that serve the same purpose in Perl, and
  * rarely do we need to distinguish them.  The term "NATIVE_UTF8" applies to
  * whichever one is applicable on the current platform */
-#define NATIVE_UTF8_TO_I8(ch) (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
-#define I8_TO_NATIVE_UTF8(ch) (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
+#  define NATIVE_UTF8_TO_I8(ch) (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
+#  define I8_TO_NATIVE_UTF8(ch) (__ASSERT_(FITS_IN_8_BITS(ch)) ((U8) ((ch) | 0)))
 
-#define UNI_TO_NATIVE(ch)        ((UV) ((ch) | 0))
-#define NATIVE_TO_UNI(ch)        ((UV) ((ch) | 0))
+#  define UNI_TO_NATIVE(ch)        ((UV) ((ch) | 0))
+#  define NATIVE_TO_UNI(ch)        ((UV) ((ch) | 0))
 
 /*
 
@@ -218,10 +218,7 @@ possible to UTF-8-encode a single code point in different ways, but that is
 explicitly forbidden, and the shortest possible encoding should always be used
 (and that is what Perl does).  The non-shortest ones are called 'overlongs'.
 
- */
-
-/*
- Another way to look at it, as bits:
+Another way to look at it, as bits:
 
                   Code Points      1st Byte   2nd Byte   3rd Byte   4th Byte
 
@@ -248,13 +245,13 @@ are in the character. */
 
 /* ^? is defined to be DEL on ASCII systems.  See the definition of toCTRL()
  * for more */
-#define QUESTION_MARK_CTRL  DEL_NATIVE
+#  define QUESTION_MARK_CTRL  DEL_NATIVE
 
 /* Surrogates, non-character code points and above-Unicode code points are
  * problematic in some contexts.  This allows code that needs to check for
  * those to quickly exclude the vast majority of code points it will
  * encounter */
-#define isUTF8_POSSIBLY_PROBLEMATIC(c) (__ASSERT_(FITS_IN_8_BITS(c))        \
+# define isUTF8_POSSIBLY_PROBLEMATIC(c) (__ASSERT_(FITS_IN_8_BITS(c))        \
                                         (U8) c >= 0xED)
 
 /* It turns out that in a number of cases, that handling ASCII vs EBCDIC is a
