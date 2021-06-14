@@ -416,6 +416,15 @@ encoded as UTF-8.  C<cp> is a native (ASCII or EBCDIC) code point if less than
  * continuation byte */
 #define MAX_PORTABLE_UTF8_TWO_BYTE (32 * nBIT_UMAX(5))
 
+/* How many bytes are needed to represent 0x10FFFF in UTF-8?  This works by
+ * observation.  It is because that number takes 21 bits to represent and the
+ * number of bytes required is proportional to
+ * (UTF_CONTINUATION_BYTE_INFO_BITS - 1).  And that is because
+ * UTF_CONTINUATION_BYTE_INFO_BITS is the number of information bits contained
+ * in each continuation bit, and each new byte removes a bit of information
+ * from the start byte */
+#define OFFUNISKIP_0x10FFFF_  (21 / (UTF_CONTINUATION_BYTE_INFO_BITS - 1))
+
 /*
 
 =for apidoc AmnU|STRLEN|UTF8_MAXBYTES_CASE
@@ -435,7 +444,7 @@ uppercase/lowercase/titlecase/fold into.
 =cut
 */
 #define UTF8_MAXBYTES_CASE	                                                \
-            MAX(UTF8_MAXBYTES, UTF8_MAX_FOLD_CHAR_EXPAND * OFFUNISKIP(0x10FFFF))
+            MAX(UTF8_MAXBYTES, UTF8_MAX_FOLD_CHAR_EXPAND * OFFUNISKIP_0x10FFFF_)
 
 /* Rest of these are attributes of Unicode and perl's internals rather than the
  * encoding, or happen to be the same in both ASCII and EBCDIC (at least at
