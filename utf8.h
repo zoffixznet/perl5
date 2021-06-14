@@ -270,14 +270,29 @@ are in the character. */
  * some #ifdefs. */
 #  define ONE_IF_EBCDIC_ZERO_IF_NOT  0
 
-#define UNICODE_IS_PERL_EXTENDED(uv)    UNLIKELY((UV) (uv) > 0x7FFFFFFF)
-
 #endif /* EBCDIC vs ASCII */
 
 /* Since the significant bits in a continuation byte are stored in the
  * least-significant positions, we often find ourselves shifting by that
  * amount.  This is a clearer name in such situations */
 #define UTF_ACCUMULATION_SHIFT		UTF_CONTINUATION_BYTE_INFO_BITS
+
+/* Perl extends Unicode so that it is possible to encode (as extended UTF-8 or
+ * UTF-EBCDIC) any 64-bit value.  No standard known to khw ever encoded higher
+ * than a 31 bit value.  On ASCII platforms this just meant arbitrarily saying
+ * nothing could be higher than this.  On these the start byte FD gets you to
+ * 31 bits, and FE and FF are forbidden as start bytes.  On EBCDIC platforms,
+ * FD gets you only to 26 bits; adding FE to mean 7 total bytes gets you to 30
+ * bits.  To get to 31 bits, they treated an initial FF byte idiosyncratically.
+ * It was considered to be the start byte FE meaning it had 7 total bytes, and
+ * the final 1 was treated as an information bit, getting you to 31 bits.
+ *
+ * Perl used to accept this idiosyncratic interpretation of FF, but now rejects
+ * it in order to get to being able to encode 64 bits.  The bottom line is that
+ * anything that requires more than 31 bits to represent on ASCII platforms
+ * uses a Perl extension; 30 bits on EBCDIC. */
+#define UNICODE_IS_PERL_EXTENDED(uv)                                           \
+              UNLIKELY((UV) (uv) > nBIT_UMAX(31 - ONE_IF_EBCDIC_ZERO_IF_NOT))
 
 /* 2**info_bits - 1.  This masks out all but the bits that carry
  * real information in a continuation byte.  This turns out to be 0x3F in
