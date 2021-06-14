@@ -360,6 +360,7 @@ C<cp> is Unicode if above 255; otherwise is platform-native.
 #if UVSIZE * CHARBITS > (6 * UTF_CONTINUATION_BYTE_INFO_BITS)
 #  define OFFUNISKIP_helper_(uv)                                            \
             UNLIKELY(uv > nBIT_UMAX(6 * UTF_CONTINUATION_BYTE_INFO_BITS))
+#  define HAS_EXTRA_LONG_UTF8
 #else
 #  define OFFUNISKIP_helper_(uv)  0
 #endif

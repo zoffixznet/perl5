@@ -1214,7 +1214,7 @@ Perl_isUTF8_CHAR(const U8 * const s0, const U8 * const e)
         return s - s0 + 1;
     }
 
-#if defined(UV_IS_QUAD) || defined(EBCDIC)
+#ifdef HAS_EXTRA_LONG_UTF8
 
     if (e - s0 >= UTF8_MAXBYTES && NATIVE_UTF8_TO_I8(*s0) == 0xFF) {
        return is_utf8_char_helper(s0, e, 0);
