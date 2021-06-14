@@ -193,14 +193,13 @@ explicitly forbidden, and the shortest possible encoding should always be used
 
 #define UTF_CONTINUATION_BYTE_INFO_BITS  UTF_EBCDIC_CONTINUATION_BYTE_INFO_BITS
 
-/* These others are for efficiency or for other decisions we've made */
+/* ^? is defined to be APC on EBCDIC systems, as specified in Unicode Technical
+ * Report #16.  See the definition of toCTRL() for more */
+#define QUESTION_MARK_CTRL   LATIN1_TO_NATIVE(0x9F)
 
+/* This is just for efficiency; other means could have been used to derive it. */
 #define isUTF8_POSSIBLY_PROBLEMATIC(c)                                          \
                 _generic_isCC(c, _CC_UTF8_START_BYTE_IS_FOR_AT_LEAST_SURROGATE)
-
-/* ^? is defined to be APC on EBCDIC systems.  See the definition of toCTRL()
- * for more */
-#define QUESTION_MARK_CTRL   LATIN1_TO_NATIVE(0x9F)
 
 #define ONE_IF_EBCDIC_ZERO_IF_NOT  1
 
