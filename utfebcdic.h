@@ -228,6 +228,7 @@ explicitly forbidden, and the shortest possible encoding should always be used
 
 #define UNICODE_IS_PERL_EXTENDED(uv)    UNLIKELY((UV) (uv) > 0x3FFFFFFF)
 
+#define ONE_IF_EBCDIC_ZERO_IF_NOT  1
 
 /*
  * ex: set ts=8 sts=4 sw=4 et:

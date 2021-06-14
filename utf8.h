@@ -265,6 +265,11 @@ are in the character. */
 #define isUTF8_POSSIBLY_PROBLEMATIC(c) (__ASSERT_(FITS_IN_8_BITS(c))        \
                                         (U8) c >= 0xED)
 
+/* It turns out that in a number of cases, that handling ASCII vs EBCDIC is a
+ * matter of being off-by-one.  So this is a convenience macro, used to avoid
+ * some #ifdefs. */
+#  define ONE_IF_EBCDIC_ZERO_IF_NOT  0
+
 #define UNICODE_IS_PERL_EXTENDED(uv)    UNLIKELY((UV) (uv) > 0x7FFFFFFF)
 
 #endif /* EBCDIC vs ASCII */
