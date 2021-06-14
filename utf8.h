@@ -78,6 +78,14 @@ the string is invariant.
 #define FOLDEQ_S1_FOLDS_SANE      (1 << 4)
 #define FOLDEQ_S2_FOLDS_SANE      (1 << 5)
 
+/* This will be described more fully below, but it turns out that the
+ * fundamental difference between UTF-8 and UTF-EBCDIC is that the former has
+ * the upper 2 bits of a continuation byte be '10', and the latter has the
+ * upper 3 bits be '101', leaving 6 and 5 significant bits respectively.
+ *
+ * It is helpful to know the EBCDIC value on ASCII platforms, mainly to avoid
+ * some #ifdef's */
+#define UTF_EBCDIC_CONTINUATION_BYTE_INFO_BITS 5
 
 /* See explanation below at 'UTF8_MAXBYTES' */
 #define ASCII_PLATFORM_UTF8_MAXBYTES 13
@@ -466,7 +474,8 @@ encoded as UTF-8.  C<cp> is a native (ASCII or EBCDIC) code point if less than
 /* The largest code point representable by two UTF-8 bytes on any platform that
  * Perl runs on.  This value is constrained by EBCDIC which has 5 bits per
  * continuation byte */
-#define MAX_PORTABLE_UTF8_TWO_BYTE (32 * nBIT_UMAX(5))
+#define MAX_PORTABLE_UTF8_TWO_BYTE                                          \
+                    nBIT_UMAX(5 + UTF_EBCDIC_CONTINUATION_BYTE_INFO_BITS)
 
 /* How many bytes are needed to represent 0x10FFFF in UTF-8?  This works by
  * observation.  It is because that number takes 21 bits to represent and the
