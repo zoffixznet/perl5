@@ -608,7 +608,7 @@ S_next_symbol(pTHX_ tempsym_t* symptr )
         patptr++;
     } else {
       /* We should have found a template code */
-      I32 code = *patptr++ & 0xFF;
+      I32 code = (U8) *patptr++;
       U32 inherited_modifiers = 0;
 
       if (code == ','){ /* grandfather in commas but with a warning */

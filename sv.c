@@ -1811,7 +1811,7 @@ S_sv_display(pTHX_ SV *const sv, char *tmpbuf, STRLEN tmpbuf_size) {
           const char *s = SvPVX_const(sv);
           const char * const end = s + SvCUR(sv);
           for ( ; s < end && d < limit; s++ ) {
-               int ch = *s & 0xFF;
+               int ch = (U8) *s;
                if (! isASCII(ch) && !isPRINT_LC(ch)) {
                     *d++ = 'M';
                     *d++ = '-';
@@ -13307,7 +13307,7 @@ Perl_sv_vcatpvfn_flags(pTHX_ SV *const sv, const char *const pat, const STRLEN p
                             sv_catpvn_nomg(msg, f, 1);
                         } else {
                             Perl_sv_catpvf(aTHX_ msg,
-                                           "\\%03" UVof, (UV)*f & 0xFF);
+                                           "\\%03" UVof, ((U8) ((UV)*f)));
                         }
                     }
                     sv_catpvs(msg, "\"");
