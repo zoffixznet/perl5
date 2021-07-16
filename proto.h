@@ -2152,6 +2152,12 @@ PERL_CALLCONV void	Perl_mro_set_mro(pTHX_ struct mro_meta *const meta, SV *const
 PERL_CALLCONV SV*	Perl_mro_set_private_data(pTHX_ struct mro_meta *const smeta, const struct mro_alg *const which, SV *const data);
 #define PERL_ARGS_ASSERT_MRO_SET_PRIVATE_DATA	\
 	assert(smeta); assert(which); assert(data)
+#ifndef PERL_NO_INLINE_FUNCTIONS
+PERL_STATIC_INLINE unsigned	Perl_msbit_pos(PERL_UINTMAX_T word)
+			__attribute__warn_unused_result__;
+#define PERL_ARGS_ASSERT_MSBIT_POS
+#endif
+
 PERL_CALLCONV SV*	Perl_multiconcat_stringify(pTHX_ const OP* o);
 #define PERL_ARGS_ASSERT_MULTICONCAT_STRINGIFY	\
 	assert(o)
