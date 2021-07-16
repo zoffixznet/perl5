@@ -798,6 +798,14 @@ Perl_lsbit_pos(PERL_UINTMAX_T word)
         return (unsigned)index;
     }
 
+#elif PERL_UINTMAX_SIZE == INTSIZE && defined(HAS_FFS)
+
+    return ffs(word) - 1;    /* ffs() returns bit position indexed from 1 */
+
+#elif PERL_UINTMAX_SIZE == LONGSIZE && defined(HAS_FFSL)
+
+    return ffsl(word) - 1;
+
 #else
 
     /* Here, we didn't find a fast method for finding the lsb.  Fall back to
