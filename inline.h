@@ -664,6 +664,16 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
     return TRUE;
 }
 
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+#  include <intrin.h>
+#  pragma intrinsic(_BitScanForward)
+#  pragma intrinsic(_BitScanReverse)
+#  ifdef _WIN64
+#    pragma intrinsic(_BitScanForward64)
+#    pragma intrinsic(_BitScanReverse64)
+#  endif
+#endif
+
 /* Convert the leading zeros count to the bit position of the first set bit.
  * This just subtracts from the highest position, 31 or 63 */
 #define LZC_TO_MSBIT_POS_(lzc)  ((PERL_UINTMAX_SIZE * CHARBITS - 1) - (lzc))
@@ -693,6 +703,23 @@ Perl_msbit_pos(PERL_UINTMAX_T word)
   && (__has_builtin(__builtin_clzll) || PERL_GCC_VERSION_GE(3,4,0))
 
     return (unsigned) LZC_TO_MSBIT_POS_(__builtin_clzll(word));
+
+#elif PERL_UINTMAX_SIZE == 4 && defined(_MSC_VER) && _MSC_VER >= 1400
+
+    {
+        unsigned long index;
+        _BitScanReverse(&index, word);
+        return (unsigned)index;
+    }
+
+#elif PERL_UINTMAX_SIZE == 8                                        \
+   && defined(_WIN64) && defined(_MSC_VER) && _MSC_VER >= 1400
+
+    {
+        unsigned long index;
+        _BitScanReverse64(&index, word);
+        return (unsigned)index;
+    }
 
 #else
 
@@ -754,6 +781,22 @@ Perl_lsbit_pos(PERL_UINTMAX_T word)
   && (__has_builtin(__builtin_ctzll) || PERL_GCC_VERSION_GE(3,4,0))
 
     return (unsigned)__builtin_ctzll(word);
+
+#elif PERL_UINTMAX_SIZE == 4 && defined(_MSC_VER) && _MSC_VER >= 1400
+    {
+        unsigned long index;
+        _BitScanForward(&index, word);
+        return (unsigned)index;
+    }
+
+#elif PERL_UINTMAX_SIZE == 8                                        \
+   && defined(_WIN64) && defined(_MSC_VER) && _MSC_VER >= 1400
+
+    {
+        unsigned long index;
+        _BitScanForward64(&index, word);
+        return (unsigned)index;
+    }
 
 #else
 
