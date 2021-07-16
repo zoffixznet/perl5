@@ -664,6 +664,10 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
     return TRUE;
 }
 
+/* Convert the leading zeros count to the bit position of the first set bit.
+ * This just subtracts from the highest position, 31 or 63 */
+#define LZC_TO_MSBIT_POS_(lzc)  ((PERL_UINTMAX_SIZE * CHARBITS - 1) - (lzc))
+
 PERL_STATIC_INLINE unsigned
 Perl_msbit_pos(PERL_UINTMAX_T word)
 {
@@ -672,7 +676,31 @@ Perl_msbit_pos(PERL_UINTMAX_T word)
 
     ASSUME(word != 0);
 
-    /* Isolate the msb; http://codeforces.com/blog/entry/10330
+    /* If we can determine that the platform has a usable fast method to get
+     * this, use that */
+
+#if PERL_UINTMAX_SIZE == INTSIZE                                    \
+ && (__has_builtin(__builtin_clz) || PERL_GCC_VERSION_GE(3,4,0))
+
+    return (unsigned) LZC_TO_MSBIT_POS_(__builtin_clz(word));
+
+#elif PERL_UINTMAX_SIZE == LONGSIZE                                 \
+  && (__has_builtin(__builtin_clzl) || PERL_GCC_VERSION_GE(3,4,0))
+
+    return (unsigned) LZC_TO_MSBIT_POS_(__builtin_clzl(word));
+
+#elif PERL_UINTMAX_SIZE == LONGLONGSIZE                             \
+  && (__has_builtin(__builtin_clzll) || PERL_GCC_VERSION_GE(3,4,0))
+
+    return (unsigned) LZC_TO_MSBIT_POS_(__builtin_clzll(word));
+
+#else
+
+    /* Here, we didn't find a fast method for finding the msb.  Fall back to
+     * making the msb the only set bit in the word, and use our function that
+     * works on words with a single bit set.
+     *
+     * Isolate the msb; http://codeforces.com/blog/entry/10330
      *
      * Only the most significant set bit matters.  Or'ing word with its right
      * shift of 1 makes that bit and the next one to its right both 1.
@@ -696,6 +724,9 @@ Perl_msbit_pos(PERL_UINTMAX_T word)
 
     /* Now we have a single bit set */
     return single_1bit_pos(word);
+
+#endif
+
 }
 
 PERL_STATIC_INLINE unsigned
@@ -706,7 +737,31 @@ Perl_lsbit_pos(PERL_UINTMAX_T word)
 
     ASSUME(word != 0);
 
-    /*  Isolate the lsb;
+    /* If we can determine that the platform has a usable fast method to get
+     * this info, use that */
+
+#if PERL_UINTMAX_SIZE == INTSIZE                                    \
+ && (__has_builtin(__builtin_ctz) || PERL_GCC_VERSION_GE(3,4,0))
+
+    return (unsigned)__builtin_ctz(word);
+
+#elif PERL_UINTMAX_SIZE == LONGSIZE                                 \
+  && (__has_builtin(__builtin_ctzl) || PERL_GCC_VERSION_GE(3,4,0))
+
+    return (unsigned)__builtin_ctzl(word);
+
+#elif PERL_UINTMAX_SIZE == LONGLONGSIZE                             \
+  && (__has_builtin(__builtin_ctzll) || PERL_GCC_VERSION_GE(3,4,0))
+
+    return (unsigned)__builtin_ctzll(word);
+
+#else
+
+    /* Here, we didn't find a fast method for finding the lsb.  Fall back to
+     * making the lsb the only set bit in the word, and use our function that
+     * works on words with a single bit set.
+     *
+     * Isolate the lsb;
      * https://stackoverflow.com/questions/757059/position-of-least-significant-bit-that-is-set
      *
      * The word will look like this, with a rightmost set bit in position 's':
@@ -722,6 +777,9 @@ Perl_lsbit_pos(PERL_UINTMAX_T word)
      *  complain about negating an unsigned.)
      */
     return single_1bit_pos(word & (~word + 1));
+
+#endif
+
 }
 
 PERL_STATIC_INLINE unsigned
