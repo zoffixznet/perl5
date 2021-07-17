@@ -689,6 +689,7 @@ Perl_msbit_pos(PERL_UINTMAX_T word)
     /* If we can determine that the platform has a usable fast method to get
      * this, use that */
 
+#define PERL_HAS_FAST_GET_MSB_POS_  /* Assume have it; undef later if don't */
 #if PERL_UINTMAX_SIZE == INTSIZE                                    \
  && (__has_builtin(__builtin_clz) || PERL_GCC_VERSION_GE(3,4,0))
 
@@ -722,6 +723,7 @@ Perl_msbit_pos(PERL_UINTMAX_T word)
     }
 
 #else
+#  undef PERL_HAS_FAST_GET_MSB_POS_
 
     /* Here, we didn't find a fast method for finding the msb.  Fall back to
      * making the msb the only set bit in the word, and use our function that
@@ -767,6 +769,7 @@ Perl_lsbit_pos(PERL_UINTMAX_T word)
     /* If we can determine that the platform has a usable fast method to get
      * this info, use that */
 
+#define PERL_HAS_FAST_GET_LSB_POS_  /* Assume have it; undef later if don't */
 #if PERL_UINTMAX_SIZE == INTSIZE                                    \
  && (__has_builtin(__builtin_ctz) || PERL_GCC_VERSION_GE(3,4,0))
 
@@ -807,6 +810,7 @@ Perl_lsbit_pos(PERL_UINTMAX_T word)
     return ffsl(word) - 1;
 
 #else
+#  undef PERL_HAS_FAST_GET_LSB_POS_
 
     /* Here, we didn't find a fast method for finding the lsb.  Fall back to
      * making the lsb the only set bit in the word, and use our function that
@@ -843,11 +847,29 @@ Perl_single_1bit_pos(PERL_UINTMAX_T word)
     ASSUME(isPOWER_OF_2(word));
 #endif
 
+    /* The only set bit is both the most and least significant bit.  If we have
+     * a fast way of finding either one, use that.
+     *
+     * It may appear at first glance that those functions call this one, but
+     * they don't if the corresponding #define is set */
+
+#ifdef PERL_HAS_FAST_GET_MSB_POS_
+
+    return msbit_pos(word);
+
+#elif defined(PERL_HAS_FAST_GET_LSB_POS_)
+
+    return lsbit_pos(word);
+
+#else
+
     /* The position of the only set bit in a word can be quickly calculated
      * using deBruijn sequences.  See for example
      * https://en.wikipedia.org/wiki/De_Bruijn_sequence */
     return PL_deBruijn_bitpos_tab[(word * PERL_deBruijnMagic_)
                                                     >> PERL_deBruijnShift_];
+#endif
+
 }
 
 #ifndef EBCDIC
