@@ -675,8 +675,15 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #endif
 
 /* Convert the leading zeros count to the bit position of the first set bit.
- * This just subtracts from the highest position, 31 or 63 */
-#define LZC_TO_MSBIT_POS_(lzc)  ((PERL_UINTMAX_SIZE * CHARBITS - 1) - (lzc))
+ * This just subtracts from the highest position, 31 or 63.  But some compilers
+ * don't optimize this optimally, and so a bit of bit twiddling encourages them
+ * to do the right thing.  It turns out that subracting a number from 2**n-1
+ * for any n is the same as taking the exclusive-or of the two numbers.
+ * Consider 63 - 10:   111111
+                     - 001010
+                     --------
+                     = 110101 = 32 + 16 + 4 + 1 = 53 */
+#define LZC_TO_MSBIT_POS_(lzc)  ((PERL_UINTMAX_SIZE * CHARBITS - 1) ^ (lzc))
 
 PERL_STATIC_INLINE unsigned
 Perl_msbit_pos(PERL_UINTMAX_T word)
