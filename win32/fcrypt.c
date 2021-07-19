@@ -357,8 +357,8 @@ des_set_key(des_cblock *key, des_key_schedule schedule)
         PERM_OP (d,c,t,1,0x55555555);
         PERM_OP (c,d,t,8,0x00ff00ff);
         PERM_OP (d,c,t,1,0x55555555);
-        d=	((((U8) d)      <<16)| (d&0x0000ff00)     |
-                 ((d&0x00ff0000)>>16)|((c&0xf0000000)>>4));
+        d= ((((unsigned char) d) <<16)| (d&0x0000ff00)     |
+                  ((d&0x00ff0000)>>16)|((c&0xf0000000)>>4));
         c&=0x0fffffff;
 
         for (i=0; i<ITERATIONS; i++)
