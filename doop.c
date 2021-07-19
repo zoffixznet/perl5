@@ -363,7 +363,8 @@ S_do_trans_count_invmap(pTHX_ SV * const sv, AV * const invmap)
         SSize_t i;
         STRLEN s_len;
 
-        /* Get the code point of the next character in the string */
+        /* remove from loop; look for all INVARIANT calls in the code; should be replaceable
+         * Get the code point of the next character in the string */
         if (! SvUTF8(sv) || UTF8_IS_INVARIANT(*s)) {
             from = *s;
             s_len = 1;

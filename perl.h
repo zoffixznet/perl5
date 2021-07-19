@@ -1224,18 +1224,18 @@ Use L</UV> to declare variables of the maximum usable size on this platform.
 
 /* byte-swapping functions for big-/little-endian conversion */
 # define _swab_16_(x) ((U16)( \
-         (((U16)(x) & UINT16_C(0x00ff)) << 8) | \
-         (((U16)(x) & UINT16_C(0xff00)) >> 8) ))
+         (((U16)(U8) (x)                   ) << 8) |  \
+         (((U16)     (x) & UINT16_C(0xff00)) >> 8) ))
 
 # define _swab_32_(x) ((U32)( \
-         (((U32)(x) & UINT32_C(0x000000ff)) << 24) | \
+         (((U32)(U8)(x)                   ) << 24) | \
          (((U32)(x) & UINT32_C(0x0000ff00)) <<  8) | \
          (((U32)(x) & UINT32_C(0x00ff0000)) >>  8) | \
          (((U32)(x) & UINT32_C(0xff000000)) >> 24) ))
 
 # ifdef HAS_QUAD
 #  define _swab_64_(x) ((U64)( \
-          (((U64)(x) & UINT64_C(0x00000000000000ff)) << 56) | \
+          (((U64)(U8)(x)                           ) << 56) | \
           (((U64)(x) & UINT64_C(0x000000000000ff00)) << 40) | \
           (((U64)(x) & UINT64_C(0x0000000000ff0000)) << 24) | \
           (((U64)(x) & UINT64_C(0x00000000ff000000)) <<  8) | \
@@ -3512,7 +3512,7 @@ EXTERN_C int perl_tsa_mutex_unlock(perl_mutex* mutex)
             if (MY_POSIX_EXIT) { \
               if (evalue <= 0xFF00) {		\
                   if (evalue > 0xFF)			\
-                    evalue = (evalue >> child_offset_bits) & 0xFF; \
+                    evalue = ((U8) (evalue >> child_offset_bits)); \
                   PL_statusvalue_vms =		\
                     (C_FAC_POSIX | (evalue << 3 ) |	\
                     ((evalue == 1) ? (STS$K_ERROR | STS$M_INHIB_MSG) : 1)); \
@@ -4220,11 +4220,11 @@ my_swap16(const U16 x) {
 #  define htovl(x)      vtohl(x)
 #  define htovs(x)      vtohs(x)
 #elif BYTEORDER == 0x4321 || BYTEORDER == 0x87654321
-#  define vtohl(x)	((((x)&0xFF)<<24)	\
-                        +(((x)>>24)&0xFF)	\
+#  define vtohl(x)	((((U8) (x)) << 24)     \
+                        +((U8) ((x) >> 24))     \
                         +(((x)&0x0000FF00)<<8)	\
                         +(((x)&0x00FF0000)>>8)	)
-#  define vtohs(x)	((((x)&0xFF)<<8) + (((x)>>8)&0xFF))
+#  define vtohs(x)	((((U8) (x)) << 8) + ((U8) ((x) >> 8)))
 #  define htovl(x)	vtohl(x)
 #  define htovs(x)	vtohs(x)
 #else

@@ -667,6 +667,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #ifndef EBCDIC
 
 PERL_STATIC_INLINE unsigned int
+/* rename to pos */
 Perl_variant_byte_number(PERL_UINTMAX_T word)
 {
 
