@@ -197,7 +197,7 @@ static U8 getCombinClass(UV uv)
     if (! plane)
 	return 0;
     row = plane[(U8) (uv >> 8)];
-    return row ? row[(U8) uv] : NULL;
+    return row ? row[(U8) uv] : 0;
 }
 
 static U8* pv_cat_decompHangul(pTHX_ U8* d, UV uv)
