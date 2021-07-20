@@ -664,6 +664,73 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
     return TRUE;
 }
 
+/* See if the platform has builtins for finding the most/least significant bit,
+ * and which one is right for using on 32 and 64 bit operands */
+#if (__has_builtin(__builtin_clzll) || PERL_GCC_VERSION_GE(3,4,0))
+#  if U32SIZE == LONGLONGSIZE
+#    define PERL_CLZ_32 __builtin_clzll
+#  endif
+#  if defined HAS_QUAD && U64SIZE == LONGLONGSIZE
+#    define PERL_CLZ_64 __builtin_clzll
+#  endif
+#endif
+#if (__has_builtin(__builtin_ctzll) || PERL_GCC_VERSION_GE(3,4,0))
+#  if U32SIZE == LONGLONGSIZE
+#    define PERL_CTZ_32 __builtin_ctzll
+#  endif
+#  if defined HAS_QUAD && U64SIZE == LONGLONGSIZE
+#    define PERL_CTZ_64 __builtin_ctzll
+#  endif
+#endif
+
+#if (__has_builtin(__builtin_clzl) || PERL_GCC_VERSION_GE(3,4,0))
+#  if U32SIZE == LONGSIZE
+
+     /* In case got #defined above, no harm done in using the version below,
+      * and is less clutter in the source than doing a bunch of #if's.  The
+      * tests are done in decreasing order so that the smallest version that
+      * works is the one that ends up getting used.  This makes it clearer for
+      * someone reading a .i file */
+#    undef  PERL_CLZ_32
+#    define PERL_CLZ_32 __builtin_clzl
+#  endif
+#  if defined HAS_QUAD && U64SIZE == LONGSIZE
+#    undef  PERL_CLZ_64
+#    define PERL_CLZ_64 __builtin_clzl
+#  endif
+#endif
+#if (__has_builtin(__builtin_ctzl) || PERL_GCC_VERSION_GE(3,4,0))
+#  if U32SIZE == LONGSIZE
+#    undef  PERL_CTZ_32
+#    define PERL_CTZ_32 __builtin_ctzl
+#  endif
+#  if defined HAS_QUAD && U64SIZE == LONGSIZE
+#    undef  PERL_CTZ_64
+#    define PERL_CTZ_64 __builtin_ctzl
+#  endif
+#endif
+
+#if (__has_builtin(__builtin_clz) || PERL_GCC_VERSION_GE(3,4,0))
+#  if U32SIZE == INTSIZE
+#    undef  PERL_CLZ_32
+#    define PERL_CLZ_32 __builtin_clz
+#  endif
+#  if defined HAS_QUAD && U64SIZE == INTSIZE
+#    undef  PERL_CLZ_64
+#    define PERL_CLZ_64 __builtin_clz
+#  endif
+#endif
+#if (__has_builtin(__builtin_ctz) || PERL_GCC_VERSION_GE(3,4,0))
+#  if U32SIZE == INTSIZE
+#    undef  PERL_CTZ_32
+#    define PERL_CTZ_32 __builtin_ctz
+#  endif
+#  if defined HAS_QUAD && U64SIZE == INTSIZE
+#    undef  PERL_CTZ_64
+#    define PERL_CTZ_64 __builtin_ctz
+#  endif
+#endif
+
 /* Below are functions to find the first, last, or only set bit in a word.  On
  * platforms with 64-bit capability, there is a pair for each operation; the
  * first taking a 64 bit operand, and the second a 32 bit one.  The logic is
@@ -679,7 +746,20 @@ Perl_lsbit_pos64(U64 word)
 
     ASSUME(word != 0);
 
-    /*  Isolate the lsb;
+    /* If we can determine that the platform has a usable fast method to get
+     * this info, use that */
+
+#  if defined(PERL_CTZ_64)
+
+    return (unsigned) PERL_CTZ_64(word);
+
+#  else
+
+    /* Here, we didn't find a fast method for finding the lsb.  Fall back to
+     * making the lsb the only set bit in the word, and use our function that
+     * works on words with a single bit set.
+     *
+     * Isolate the lsb;
      * https://stackoverflow.com/questions/757059/position-of-least-significant-bit-that-is-set
      *
      * The word will look like this, with a rightmost set bit in position 's':
@@ -695,11 +775,14 @@ Perl_lsbit_pos64(U64 word)
      *  complain about negating an unsigned.)
      */
     return single_1bit_pos64(word & (~word + 1));
+
+#  endif
+
 }
 
-# define lsbit_pos_uintmax_(word) lsbit_pos64(word)
-#else
-# define lsbit_pos_uintmax_(word) lsbit_pos32(word)
+#  define lsbit_pos_uintmax_(word) lsbit_pos64(word)
+#else   /* ! QUAD */
+#  define lsbit_pos_uintmax_(word) lsbit_pos32(word)
 #endif
 
 PERL_STATIC_INLINE unsigned     /* Like above for 32 bit word */
@@ -710,9 +793,22 @@ Perl_lsbit_pos32(U32 word)
 
     ASSUME(word != 0);
 
+#if defined(PERL_CTZ_32)
+
+    return (unsigned) PERL_CTZ_32(word);
+
+#else
+
     return single_1bit_pos32(word & (~word + 1));
-}
  
+#endif
+
+}
+
+/* Convert the leading zeros count to the bit position of the first set bit.
+ * This just subtracts from the highest position, 31 or 63 */
+#define LZC_TO_MSBIT_POS_(size, lzc)  ((size##SIZE * CHARBITS - 1) - (lzc))
+
 #ifdef HAS_QUAD
 
 PERL_STATIC_INLINE unsigned
@@ -723,7 +819,20 @@ Perl_msbit_pos64(U64 word)
 
     ASSUME(word != 0);
 
-    /* Isolate the msb; http://codeforces.com/blog/entry/10330
+    /* If we can determine that the platform has a usable fast method to get
+     * this, use that */
+
+#  if defined(PERL_CLZ_64)
+
+    return (unsigned) LZC_TO_MSBIT_POS_(U64, PERL_CLZ_64(word));
+
+#  else
+
+    /* Here, we didn't find a fast method for finding the msb.  Fall back to
+     * making the msb the only set bit in the word, and use our function that
+     * works on words with a single bit set.
+     *
+     * Isolate the msb; http://codeforces.com/blog/entry/10330
      *
      * Only the most significant set bit matters.  Or'ing word with its right
      * shift of 1 makes that bit and the next one to its right both 1.
@@ -742,11 +851,14 @@ Perl_msbit_pos64(U64 word)
 
     /* Now we have a single bit set */
     return single_1bit_pos64(word);
+
+#  endif
+
 }
 
-# define msbit_pos_uintmax_(word) msbit_pos64(word)
-#else
-# define msbit_pos_uintmax_(word) msbit_pos32(word)
+#  define msbit_pos_uintmax_(word) msbit_pos64(word)
+#else   /* ! QUAD */
+#  define msbit_pos_uintmax_(word) msbit_pos32(word)
 #endif
 
 PERL_STATIC_INLINE unsigned
@@ -757,6 +869,12 @@ Perl_msbit_pos32(U32 word)
 
     ASSUME(word != 0);
 
+#if defined(PERL_CLZ_32)
+
+    return (unsigned) LZC_TO_MSBIT_POS_(U32, PERL_CLZ_32(word));
+
+#else
+
     word |= (word >>  1);
     word |= (word >>  2);
     word |= (word >>  4);
@@ -764,6 +882,9 @@ Perl_msbit_pos32(U32 word)
     word |= (word >> 16);
     word -= (word >> 1);
     return single_1bit_pos32(word);
+
+#endif
+
 }
 
 #ifdef HAS_QUAD
