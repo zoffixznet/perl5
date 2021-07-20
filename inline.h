@@ -731,6 +731,21 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #  endif
 #endif
 
+#if U32SIZE == INTSIZE && defined(HAS_FFS)
+#  define PERL_FFS32 ffs
+#elif U32SIZE == LONGSIZE && defined(HAS_FFSL)
+#  define PERL_FFS32 ffsl
+#endif
+#ifdef HAS_QUAD
+#  if U64SIZE == INTSIZE && defined(HAS_FFS)
+#    define PERL_FFS64 ffs
+#  elif U64SIZE == LONGSIZE && defined(HAS_FFSL)
+#    define PERL_FFS64 ffsl
+#  elif U64SIZE == LONGLONGSIZE && defined(HAS_FFSLL)
+#    define PERL_FFS64 ffsll
+#  endif
+#endif
+
 #if defined(_MSC_VER) && _MSC_VER >= 1400
 #  include <intrin.h>
 #  pragma intrinsic(_BitScanForward)
@@ -770,6 +785,10 @@ Perl_lsbit_pos64(U64 word)
         _BitScanForward64(&index, word);
         return (unsigned)index;
     }
+
+#  elif defined(PERL_FFS64)
+
+    return PERL_FFS64(word) - 1;    /* ffs() returns bit position indexed from 1 */
 
 #  else
 
@@ -822,6 +841,10 @@ Perl_lsbit_pos32(U32 word)
         _BitScanForward(&index, word);
         return (unsigned)index;
     }
+
+#elif defined(PERL_FFS32)
+
+    return PERL_FFS32(word) - 1;
 
 #else
 
