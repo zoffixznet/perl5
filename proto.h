@@ -4733,6 +4733,14 @@ PERL_CALLCONV int	Perl_PerlProc_pipe_cloexec(pTHX_ int *pipefd)
 	assert(pipefd)
 
 #endif
+#if defined(HAS_QUAD)
+#ifndef PERL_NO_INLINE_FUNCTIONS
+PERL_STATIC_INLINE unsigned	Perl_single_1bit_pos64(U64 word)
+			__attribute__warn_unused_result__;
+#define PERL_ARGS_ASSERT_SINGLE_1BIT_POS64
+#endif
+
+#endif
 #if defined(HAS_SOCKET)
 PERL_CALLCONV int	Perl_PerlSock_accept_cloexec(pTHX_ int listenfd, struct sockaddr *addr, Sock_size_t *addrlen)
 			__attribute__warn_unused_result__;
