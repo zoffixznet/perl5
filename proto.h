@@ -1861,6 +1861,12 @@ PERL_CALLCONV I32	Perl_looks_like_number(pTHX_ SV *const sv)
 #define PERL_ARGS_ASSERT_LOOKS_LIKE_NUMBER	\
 	assert(sv)
 
+#ifndef PERL_NO_INLINE_FUNCTIONS
+PERL_STATIC_INLINE unsigned	Perl_lsbit_pos32(U32 word)
+			__attribute__warn_unused_result__;
+#define PERL_ARGS_ASSERT_LSBIT_POS32
+#endif
+
 PERL_CALLCONV int	Perl_magic_clear_all_env(pTHX_ SV* sv, MAGIC* mg);
 #define PERL_ARGS_ASSERT_MAGIC_CLEAR_ALL_ENV	\
 	assert(sv); assert(mg)
@@ -4734,6 +4740,12 @@ PERL_CALLCONV int	Perl_PerlProc_pipe_cloexec(pTHX_ int *pipefd)
 
 #endif
 #if defined(HAS_QUAD)
+#ifndef PERL_NO_INLINE_FUNCTIONS
+PERL_STATIC_INLINE unsigned	Perl_lsbit_pos64(U64 word)
+			__attribute__warn_unused_result__;
+#define PERL_ARGS_ASSERT_LSBIT_POS64
+#endif
+
 #ifndef PERL_NO_INLINE_FUNCTIONS
 PERL_STATIC_INLINE unsigned	Perl_single_1bit_pos64(U64 word)
 			__attribute__warn_unused_result__;
