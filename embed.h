@@ -837,11 +837,6 @@
 #define pad_setsv(a,b)		Perl_pad_setsv(aTHX_ a,b)
 #define pad_sv(a)		Perl_pad_sv(aTHX_ a)
 #endif
-#if defined(HAS_QUAD)
-#define lsbit_pos64		Perl_lsbit_pos64
-#define msbit_pos64		Perl_msbit_pos64
-#define single_1bit_pos64	Perl_single_1bit_pos64
-#endif
 #if defined(HAVE_INTERP_INTERN)
 #define sys_intern_clear()	Perl_sys_intern_clear(aTHX)
 #define sys_intern_init()	Perl_sys_intern_init(aTHX)
@@ -876,6 +871,11 @@
 #endif
 #if defined(PERL_USE_3ARG_SIGHANDLER)
 #define csighandler		Perl_csighandler
+#endif
+#if defined(U64TYPE)	/* HAS_QUAD undefined outside of core */
+#define lsbit_pos64		Perl_lsbit_pos64
+#define msbit_pos64		Perl_msbit_pos64
+#define single_1bit_pos64	Perl_single_1bit_pos64
 #endif
 #if defined(UNLINK_ALL_VERSIONS)
 #define unlnk(a)		Perl_unlnk(aTHX_ a)

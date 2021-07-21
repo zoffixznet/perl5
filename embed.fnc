@@ -1144,7 +1144,7 @@ ATidRp	|bool	|is_utf8_invariant_string_loc|NN const U8* const s	    \
 CTiRp	|unsigned|single_1bit_pos32|U32 word
 CTiRp	|unsigned|lsbit_pos32|U32 word
 CTiRp	|unsigned|msbit_pos32|U32 word
-#ifdef HAS_QUAD
+#ifdef U64TYPE	/* HAS_QUAD undefined outside of core */
 CTiRp	|unsigned|single_1bit_pos64|U64 word
 CTiRp	|unsigned|lsbit_pos64|U64 word
 CTiRp	|unsigned|msbit_pos64|U64 word

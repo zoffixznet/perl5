@@ -670,7 +670,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #  if U32SIZE == LONGLONGSIZE
 #    define PERL_CLZ_32 __builtin_clzll
 #  endif
-#  if defined HAS_QUAD && U64SIZE == LONGLONGSIZE
+#  if defined(U64TYPE) && U64SIZE == LONGLONGSIZE
 #    define PERL_CLZ_64 __builtin_clzll
 #  endif
 #endif
@@ -678,7 +678,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #  if U32SIZE == LONGLONGSIZE
 #    define PERL_CTZ_32 __builtin_ctzll
 #  endif
-#  if defined HAS_QUAD && U64SIZE == LONGLONGSIZE
+#  if defined(U64TYPE) && U64SIZE == LONGLONGSIZE
 #    define PERL_CTZ_64 __builtin_ctzll
 #  endif
 #endif
@@ -694,7 +694,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #    undef  PERL_CLZ_32
 #    define PERL_CLZ_32 __builtin_clzl
 #  endif
-#  if defined HAS_QUAD && U64SIZE == LONGSIZE
+#  if defined(U64TYPE) && U64SIZE == LONGSIZE
 #    undef  PERL_CLZ_64
 #    define PERL_CLZ_64 __builtin_clzl
 #  endif
@@ -704,7 +704,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #    undef  PERL_CTZ_32
 #    define PERL_CTZ_32 __builtin_ctzl
 #  endif
-#  if defined HAS_QUAD && U64SIZE == LONGSIZE
+#  if defined(U64TYPE) && U64SIZE == LONGSIZE
 #    undef  PERL_CTZ_64
 #    define PERL_CTZ_64 __builtin_ctzl
 #  endif
@@ -715,7 +715,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #    undef  PERL_CLZ_32
 #    define PERL_CLZ_32 __builtin_clz
 #  endif
-#  if defined HAS_QUAD && U64SIZE == INTSIZE
+#  if defined(U64TYPE) && U64SIZE == INTSIZE
 #    undef  PERL_CLZ_64
 #    define PERL_CLZ_64 __builtin_clz
 #  endif
@@ -725,24 +725,24 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 #    undef  PERL_CTZ_32
 #    define PERL_CTZ_32 __builtin_ctz
 #  endif
-#  if defined HAS_QUAD && U64SIZE == INTSIZE
+#  if defined(U64TYPE) && U64SIZE == INTSIZE
 #    undef  PERL_CTZ_64
 #    define PERL_CTZ_64 __builtin_ctz
 #  endif
 #endif
 
 #if U32SIZE == INTSIZE && defined(HAS_FFS)
-#  define PERL_FFS32 ffs
+#  define PERL_FFS32(x)  ffs((int) (x))
 #elif U32SIZE == LONGSIZE && defined(HAS_FFSL)
-#  define PERL_FFS32 ffsl
+#  define PERL_FFS32(x)  ffsl((long) (x))
 #endif
-#ifdef HAS_QUAD
+#ifdef U64TYPE
 #  if U64SIZE == INTSIZE && defined(HAS_FFS)
-#    define PERL_FFS64 ffs
+#    define PERL_FFS64(x)  ffs((int) (x))
 #  elif U64SIZE == LONGSIZE && defined(HAS_FFSL)
-#    define PERL_FFS64 ffsl
+#    define PERL_FFS64(x)  ffsl((long) (x))
 #  elif U64SIZE == LONGLONGSIZE && defined(HAS_FFSLL)
-#    define PERL_FFS64 ffsll
+#    define PERL_FFS64(x)  ffsll((long long) (x)
 #  endif
 #endif
 
@@ -761,7 +761,7 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
  * first taking a 64 bit operand, and the second a 32 bit one.  The logic is
  * the same in each pair, so the second is stripped of most comments. */
 
-#ifdef HAS_QUAD
+#ifdef U64TYPE  /* HAS_QUAD not usable outside the core */
 
 PERL_STATIC_INLINE unsigned
 Perl_lsbit_pos64(U64 word)
@@ -872,7 +872,7 @@ Perl_lsbit_pos32(U32 word)
                                    = 110101 = 32 + 16 + 4 + 1 = 53 */
 #define LZC_TO_MSBIT_POS_(size, lzc)  ((size##SIZE * CHARBITS - 1) ^ (lzc))
 
-#ifdef HAS_QUAD
+#ifdef U64TYPE  /* HAS_QUAD not usable outside the core */
 
 PERL_STATIC_INLINE unsigned
 Perl_msbit_pos64(U64 word)
@@ -970,7 +970,7 @@ Perl_msbit_pos32(U32 word)
 
 }
 
-#ifdef HAS_QUAD
+#ifdef U64TYPE  /* HAS_QUAD not usable outside the core */
 
 PERL_STATIC_INLINE unsigned
 Perl_single_1bit_pos64(U64 word)
@@ -980,6 +980,8 @@ Perl_single_1bit_pos64(U64 word)
 
 #  ifdef PERL_CORE    /* macro not exported */
     ASSUME(isPOWER_OF_2(word));
+#  else
+    ASSUME(word && (word & (word-1)) == 0);
 #  endif
 
     /* The only set bit is both the most and least significant bit.  If we have
@@ -1017,6 +1019,8 @@ Perl_single_1bit_pos32(U32 word)
 
 #ifdef PERL_CORE    /* macro not exported */
     ASSUME(isPOWER_OF_2(word));
+#else
+    ASSUME(word && (word & (word-1)) == 0);
 #endif
 #ifdef PERL_HAS_FAST_GET_MSB_POS32
 
@@ -1027,7 +1031,9 @@ Perl_single_1bit_pos32(U32 word)
     return lsbit_pos32(word);
 
 /* Unlikely, but possible for the platform to have a wider fast operation but
- * not a narrower one.  But handle the case by widening the parameter size */
+ * not a narrower one.  But easy enough to handle the case by widening the
+ * parameter size.  (Going the other way, emulating 64 bit by two 32 bit ops
+ * would be slower than the deBruijn method.) */
 #elif defined(PERL_HAS_FAST_GET_MSB_POS64)
 
     return msbit_pos64(word);
@@ -1214,7 +1220,7 @@ C<L</is_utf8_fixed_width_buf_loclen_flags>>,
 
 #define is_utf8_string(s, len)  is_utf8_string_loclen(s, len, NULL, NULL)
 
-#if defined(PERL_CORE) || defined (PERL_EXT)
+#if defined(PERL_CORE) || defined(PERL_EXT)
 
 /*
 =for apidoc is_utf8_non_invariant_string
